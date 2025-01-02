@@ -1,66 +1,257 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Blog API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This project shows how to create APIs in Laravel for a blog application.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+* ✅ Laravel 11
+* ✅ API documentation with [Scramble](https://scramble.dedoc.co/)
+* ✅ Enums
+* ✅ Laravel Data (Data Transfer Objects)
+* ✅ Actions
+* ✅ Custom query builders
+* ✅ PHPStan
+* ✅ Rector
+* ✅ Laravel Pint (PHP Coding Standards Fixer)
+* ✅ Pest (testing)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Installation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Install dependencies using Composer
 
-## Learning Laravel
+```
+composer install
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Create your .env file from example
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```
+cp .env.example .env
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## API documentation
 
-## Laravel Sponsors
+Documentation is generated with [Scramble](https://scramble.dedoc.co/). You can see it at:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```
+https://example.test/docs/api
+```
 
-### Premium Partners
+## Enums
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Enums are a way to define a set of named constants. It is very powerful and can help you write more readable and maintainable code.
 
-## Contributing
+```php
+enum PostStatus: int
+{
+    case Draft = 1;
+    case Published = 2;
+    case Archived = 3;
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    public function isDraft(): bool
+    {
+        return $this === self::Draft;
+    }
 
-## Code of Conduct
+    public function isPublished(): bool
+    {
+        return $this === self::Published;
+    }
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+    public function isArchived(): bool
+    {
+        return $this === self::Archived;
+    }
 
-## Security Vulnerabilities
+    public function label(): string
+    {
+        return match ($this) {
+            self::Draft => 'Draft',
+            self::Published => 'Published',
+            self::Archived => 'Archived',
+        };
+    }
+}
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Data transfer objects
 
-## License
+Data transfer objects (DTOs) are objects that carry data between processes. Package [spatie/laravel-data](https://spatie.be/docs/laravel-data/v4/introduction) provides a simple way to create data transfer objects in Laravel.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```php
+#[MapOutputName(SnakeCaseMapper::class)]
+final class PostPayload extends Data
+{
+    public function __construct(
+        public readonly string|Optional $title,
+        public readonly string|Optional $content,
+        public readonly string|Optional $status,
+    ) {}
+}
+```
+
+## Actions
+
+Actions in Laravel are separate classes that encapsulate one specific task or part of the business logic of an application. They are part of a concept that seeks to improve code organization and adhere to the Single Responsibility Principle.
+
+Action class should have one public method execute, run, handle. The name is up to you.
+
+### Create access token
+
+Verify login credentials and create an access token. It returns token as value object.
+
+```php
+final readonly class CreateAccessTokenAction
+{
+    public function execute(User $user): AccessTokenData
+    {
+        $expiresAt = CarbonImmutable::now()->addHours(2);
+
+        $token = $user->createToken(
+            name: 'AccessToken',
+            expiresAt: $expiresAt,
+        );
+
+        $accessToken = str($token->plainTextToken)->explode('|')->last();
+
+        return new AccessTokenData($accessToken, $expiresAt);
+    }
+}
+```
+
+## Custom query builders
+
+Personally, I don't really like the scope inside the models. A simple solution is a custom query builder.
+
+## User builder
+
+In model:
+
+```php
+final class User extends Model
+{
+    // ...
+    
+    public function newEloquentBuilder($query): UserBuilder
+    {
+        return new UserBuilder($query);
+    }
+    
+    // ...
+}
+```
+
+Custom query builder:
+
+```php
+/**
+ * @extends Builder<\App\Models\User>
+ */
+final class UserBuilder extends Builder
+{
+    public function whereEmail(string $email): self
+    {
+        return $this->where('email', $email);
+    }
+}
+```
+
+## Testing
+
+For tests, it uses a [pestphp](https://pestphp.com/). Several tests are created for each endpoint to ensure proper functioning. I'll just give you a few examples.
+
+### Login
+
+```php
+it('can login by email and password', function (): void {
+    // Arrange
+    $user = User::factory()->create();
+
+    $data = [
+        'email' => $user->email,
+        'password' => 'password',
+    ];
+
+    // Act & Assert
+    postJson('api/auth/login', $data)
+        ->assertStatus(201)
+        ->assertJsonStructure(AccessTokenApiStructure::resource());
+});
+
+it('returns 422 if invalid credentials', function (array $data): void {
+    // Arrange
+    User::factory()->create([
+        'email' => 'test@example.com',
+        'password' => 'password',
+    ]);
+
+    // Act & Assert
+    postJson('api/auth/login', $data)
+        ->assertStatus(422)
+        ->assertJsonValidationErrors([
+            'email' => [
+                'The provided credentials are incorrect.',
+            ],
+        ]);
+})->with([
+    fn (): array => [
+        'email' => 'wrong-email@example.com',
+        'password' => 'password',
+    ],
+    fn (): array => [
+        'email' => 'test@example.com',
+        'password' => 'wrong-password',
+    ],
+]);
+```
+
+### Post
+
+```php
+it('returns paginated list of posts', function (): void {
+    // Arrange
+    actingAs(User::factory()->create());
+
+    Post::factory()->count(10)->create();
+
+    // Act & Assert
+    getJson('api/posts')
+        ->assertStatus(200)
+        ->assertJsonCount(10, 'data')
+        ->assertJsonStructure(PaginatedApiStructure::of(
+            PostApiStructure::collection()
+        ));
+});
+
+it('returns a post', function (): void {
+    // Arrange
+    actingAs(User::factory()->create());
+
+    $post = Post::factory()->create();
+
+    // Assert & Act
+    getJson('api/posts/' . $post->id)
+        ->assertStatus(200)
+        ->assertJsonStructure(PostApiStructure::resource());
+});
+
+it('can publish a post', function (Dataset $dataset): void {
+    // Arrange
+    actingAs(User::factory()->create());
+
+    $post = Post::factory()->create();
+
+    // Assert & Act
+    $response = patchJson('api/posts/' . $post->id, $dataset->data)
+        ->assertStatus(200)
+        ->assertJsonStructure(PostApiStructure::resource());
+
+    expect($response->json())
+        ->status->toBe(PostStatus::Published->value)
+        ->publishedAt->not->toBeNull();
+})->with([
+    fn (): Dataset => new Dataset(data: [
+        'status' => PostStatus::Published,
+    ]),
+]);
+```
