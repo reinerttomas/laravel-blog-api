@@ -15,6 +15,21 @@ This project shows how to create APIs in Laravel for a blog application.
 * ✅ Laravel Pint (PHP Coding Standards Fixer)
 * ✅ Pest (testing)
 
+## Goals
+- [x] user can login
+- [x] user can see posts and comments
+- [x] user can create a post
+- [x] user can update a post
+- [x] user can delete a post
+- [x] user can create a comment
+- [x] user can update a comment
+- [x] user can delete a comment
+- [x] use `PATCH` request for partial update
+- [ ] user can like a post
+- [ ] user can dislike a post
+- [ ] user can manage their posts and comments
+- [ ] use [Laravel Query Builder](https://spatie.be/docs/laravel-query-builder/v5/features/filtering)
+
 ## Installation
 
 Install dependencies using Composer
