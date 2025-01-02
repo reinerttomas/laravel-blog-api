@@ -13,7 +13,7 @@ final class Auth extends LaravelAuth
     /**
      * @throws \Illuminate\Auth\AuthenticationException
      */
-    public static function findOrFail(): User
+    public static function userOrFail(): User
     {
         return LaravelAuth::user() ?? throw new AuthenticationException('Unauthenticated.');
     }

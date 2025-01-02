@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use Tests\AssertableJson\AccessTokenAssertableJson;
+use Tests\Structures\Api\AccessTokenApiStructure;
 
 use function Pest\Laravel\postJson;
 
@@ -19,7 +19,7 @@ it('can login by email and password', function (): void {
     // Act & Assert
     postJson('api/auth/login', $data)
         ->assertStatus(201)
-        ->assertJson(AccessTokenAssertableJson::resource());
+        ->assertJsonStructure(AccessTokenApiStructure::resource());
 });
 
 it('returns 422 if invalid credentials', function (array $data): void {
