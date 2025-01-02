@@ -123,9 +123,9 @@ final readonly class CreateAccessTokenAction
 
 Personally, I don't really like the scope inside the models. A simple solution is a custom query builder.
 
-## User builder
+### User builder
 
-In model:
+#### In model:
 
 ```php
 final class User extends Model
@@ -141,7 +141,7 @@ final class User extends Model
 }
 ```
 
-Custom query builder:
+#### Custom query builder:
 
 ```php
 /**
